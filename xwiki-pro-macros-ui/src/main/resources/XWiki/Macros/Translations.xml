@@ -141,6 +141,15 @@ rendering.macro.team.content.noUsers=There is nobody to show.
 admin.promacros=Pro Macros
 admin.promacros.description=Settings for Pro Macros
 
+## Tag list
+rendering.macro.tagList.name=Tag list
+rendering.macro.tagList.description=Show a list of all the macros in your instance.
+rendering.macro.tagList.parameter.spaces.description=List of spaces for witch you want to see the tags. The elements must be separated by commas.
+rendering.macro.tagList.parameter.spaces.name=Spaces
+rendering.macro.tagList.parameter.excludedTags.description=List of tags that you want to exclude. The elements must be separated by commas.
+rendering.macro.tagList.parameter.excludedTags.name=Excluded tags
+rendering.macro.taglist.notags=As you and your team add tags to the content, this area will fill up.
+
 ## User List macro
 rendering.macro.userList.name=User List
 rendering.macro.userList.description=Displays a list of users with a customizable set of their properties
