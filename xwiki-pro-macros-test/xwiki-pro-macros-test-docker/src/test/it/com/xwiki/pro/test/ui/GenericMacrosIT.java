@@ -156,8 +156,11 @@ public class GenericMacrosIT
         setup.setGlobalRights("XWiki.XWikiAllGroup", "", "edit", true);
         setup.attachFile("XWiki", "UserTest", "image1.png", getClass().getResourceAsStream("/macros/image1.png"),
             false);
+        setup.createAdminUser(true);
+        setup.loginAsAdmin();
         registerMacros();
         createTestPages(setup);
+        setup.loginAsSuperAdmin();
         createPagesWithTags(setup);
 
         SolrTestUtils solrTestUtils = new SolrTestUtils(setup);

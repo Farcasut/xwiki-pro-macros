@@ -54,6 +54,7 @@ import org.xwiki.rendering.block.TableCellBlock;
 import org.xwiki.rendering.block.TableHeadCellBlock;
 import org.xwiki.rendering.block.TableRowBlock;
 import org.xwiki.rendering.block.TableBlock;
+import org.xwiki.rendering.block.XDOM;
 import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.macro.AbstractMacro;
 import org.xwiki.rendering.macro.Macro;
@@ -62,6 +63,7 @@ import org.xwiki.rendering.parser.ParseException;
 import org.xwiki.rendering.parser.Parser;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.rendering.transformation.MacroTransformationContext;
+import org.xwiki.rendering.transformation.TransformationContext;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
@@ -103,6 +105,7 @@ public class ViewFileAsyncFullRenderer extends AbstractViewFileAsyncRenderer
     private static final String OFFICE_HINT = "office";
 
     private static final String PDFVIEW_HINT = "pdfviewer";
+
 
     @Inject
     private EntityReferenceSerializer<String> referenceSerializer;
@@ -196,7 +199,22 @@ public class ViewFileAsyncFullRenderer extends AbstractViewFileAsyncRenderer
     {
         try {
             List<Block> result = prepareFullDisplay();
-            return new CompositeBlock(result);
+            Block block = new CompositeBlock(result);;
+            XDOM xdom = null;
+            if (xdom == null) {
+                Block rootBlock = block.getRoot();
+
+                if (rootBlock instanceof XDOM) {
+                    xdom = (XDOM) rootBlock;
+                } else {
+                    xdom = new XDOM(Collections.singletonList(rootBlock));
+                }
+            }
+            TransformationContext transformationContext =
+                new TransformationContext(xdom, Syntax.XWIKI_2_1  , false);
+            transformationContext.setTargetSyntax(Syntax.XHTML_5);
+            transform(block, transformationContext);
+            return block;
         } catch (Exception e) {
             throw new RenderingException("Failed to render asynchronously the work items displayer.", e);
         }

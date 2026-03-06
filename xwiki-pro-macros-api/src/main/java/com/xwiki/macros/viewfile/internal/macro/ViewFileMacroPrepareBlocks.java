@@ -74,6 +74,7 @@ public class ViewFileMacroPrepareBlocks
 
     /**
      * CSV extensions.
+     *
      * @since 1.30.0
      */
     public static final Collection<String> CSV_FILE_EXTENSIONS = List.of("csv", "tsv");
@@ -246,21 +247,16 @@ public class ViewFileMacroPrepareBlocks
         }
         String fileExtension = getFileExtension(fileName);
 
-        if (OFFICE_FILE_EXTENSIONS.contains(fileExtension)
-                || CSV_FILE_EXTENSIONS.contains(fileExtension)
-                || (fileExtension.equals(PDF) && isApplicationInstalled(PDF_VIEWER_REFERENCE)))
+        if (OFFICE_FILE_EXTENSIONS.contains(fileExtension) || CSV_FILE_EXTENSIONS.contains(fileExtension) || (
+            fileExtension.equals(PDF) && isApplicationInstalled(PDF_VIEWER_REFERENCE)))
         {
-            Map<String, String> renderParameters = Map.of(
-                    "width", parameters.getWidth(),
-                    "height", parameters.getHeight(),
-                    "fileExtension", fileExtension,
-                    "csvFormat", parameters.getCSVFormat(),
-                    "csvDelimiter", parameters.getCSVDelimiter(),
-                    "csvFirstLineIsHeader", Boolean.toString(parameters.getCSVFirstLineIsHeader())
-            );
+            Map<String, String> renderParameters =
+                Map.of("width", parameters.getWidth(), "height", parameters.getHeight(), "fileExtension", fileExtension,
+                    "csvFormat", parameters.getCSVFormat(), "csvDelimiter", parameters.getCSVDelimiter(),
+                    "csvFirstLineIsHeader", Boolean.toString(parameters.getCSVFirstLineIsHeader()));
 
             String asyncBlock = asyncManager.getViewFileAsyncBlock(attachmentReference, false, renderParameters, "div",
-                ViewFileAsyncFullRenderer.HINT);
+                ViewFileAsyncFullRenderer.HINT, context);
             return List.of(new RawBlock(asyncBlock, Syntax.XHTML_1_0));
         }
         // Fallback if the file extension is not a known one.

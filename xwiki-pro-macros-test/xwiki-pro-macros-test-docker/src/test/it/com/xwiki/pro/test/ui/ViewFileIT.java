@@ -47,7 +47,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     // host machine.
     ServletEngine.JETTY_STANDALONE }, properties = {
     // Add the FileUploadPlugin which is needed by the test to upload attachment files
-    "xwikiCfgPlugins=com.xpn.xwiki.plugin.fileupload.FileUploadPlugin" }, extensionOverrides = {
+    "xwikiCfgPlugins=com.xpn.xwiki.plugin.fileupload.FileUploadPlugin",
+    "openoffice.autoStart=true"},
+    extensionOverrides = {
     @ExtensionOverride(extensionId = "com.google.code.findbugs:jsr305", overrides = {
         "features=com.google.code.findbugs:annotations" }),
     // Right id of the Bouncy Castle package. Build fails since the wrong dependency is resolved. Check after XWiki
@@ -63,7 +65,8 @@ public class ViewFileIT
     @BeforeAll
     void setup(TestUtils setup)
     {
-        setup.loginAsSuperAdmin();
+        setup.createAdminUser(true);
+        setup.loginAsAdmin();
     }
 
     @Test
@@ -118,7 +121,6 @@ public class ViewFileIT
     {
         // We first enable the office extension.
         enableOfficeServer();
-
         ViewPage currentPage = createPage(setup, "{{view-file name=\"Test.ppt\"/}}", "actualAttachmentPreview");
         uploadFile("Test.ppt", testConfiguration);
         currentPage.reloadPage();

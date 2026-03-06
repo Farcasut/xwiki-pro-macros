@@ -59,6 +59,7 @@ public class MacroAsyncManager
     @Inject
     private Logger logger;
 
+
     /**
      * Execute the async renderer corresponding to the given parameters and return a placeholder if the execution is not
      * finished.
@@ -78,6 +79,42 @@ public class MacroAsyncManager
             configuration.setPlaceHolderForced(true);
             MacroTransformationContext context = new MacroTransformationContext();
             context.setInline(isInline);
+
+            AbstractViewFileAsyncRenderer asyncRenderer =
+                getAsyncRenderer(configuration, attachmentReference, parameters, hint, context);
+            AsyncRendererExecutorResponse response = asyncRendererExecutor.render(asyncRenderer, configuration);
+            AsyncRendererResult result = response.getStatus().getResult();
+
+            if (result != null) {
+                return result.getResult();
+            } else {
+                return String.format(
+                    "<%s class=\"xwiki-async\" data-xwiki-async-id=\"%s\" data-xwiki-async-client-id=\"%s\"></%s>",
+                    element, response.getJobIdHTTPPath(), response.getAsyncClientId(), element);
+            }
+        } catch (Exception e) {
+            logger.error("There was an error while attempting to execute the async renderer.", e);
+            throw new RuntimeException("Failed to execute the async renderer. Please check the logs for more info.");
+        }
+    }
+
+    /**
+     * Execute the async renderer corresponding to the given parameters and return a placeholder if the execution is not
+     * finished.
+     *
+     * @param attachmentReference the reference of the attachment used in the async rendering execution
+     * @param isInline if the context should be set in line or not
+     * @param parameters additional parameters needed in the execution
+     * @param element the placeholder block element type
+     * @param hint the hint for the {@link AbstractViewFileAsyncRenderer} implementation to be used
+     * @return return a placeholder if the execution is not finished
+     */
+    public String getViewFileAsyncBlock(AttachmentReference attachmentReference, boolean isInline,
+        Map<String, String> parameters, String element, String hint, MacroTransformationContext context)
+    {
+        try {
+            AsyncRendererConfiguration configuration = new AsyncRendererConfiguration();
+            configuration.setPlaceHolderForced(true);
 
             AbstractViewFileAsyncRenderer asyncRenderer =
                 getAsyncRenderer(configuration, attachmentReference, parameters, hint, context);
