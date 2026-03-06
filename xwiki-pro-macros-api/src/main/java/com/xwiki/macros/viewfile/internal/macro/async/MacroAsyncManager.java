@@ -68,16 +68,17 @@ public class MacroAsyncManager
      * @param parameters additional parameters needed in the execution
      * @param element the placeholder block element type
      * @param hint the hint for the {@link AbstractViewFileAsyncRenderer} implementation to be used
+     * @param context the context in which the macro is executed
      * @return return a placeholder if the execution is not finished
      */
     public String getViewFileAsyncBlock(AttachmentReference attachmentReference, boolean isInline,
-        Map<String, String> parameters, String element, String hint)
+        Map<String, String> parameters, String element, String hint, MacroTransformationContext context)
     {
         try {
             AsyncRendererConfiguration configuration = new AsyncRendererConfiguration();
             configuration.setPlaceHolderForced(true);
-            MacroTransformationContext context = new MacroTransformationContext();
-            context.setInline(isInline);
+//            MacroTransformationContext context = new MacroTransformationContext();
+//            context.setInline(isInline);
 
             AbstractViewFileAsyncRenderer asyncRenderer =
                 getAsyncRenderer(configuration, attachmentReference, parameters, hint, context);

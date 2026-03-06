@@ -74,6 +74,7 @@ public class ViewFileMacroPrepareBlocks
 
     /**
      * CSV extensions.
+     *
      * @since 1.30.0
      */
     public static final Collection<String> CSV_FILE_EXTENSIONS = List.of("csv", "tsv");
@@ -213,7 +214,7 @@ public class ViewFileMacroPrepareBlocks
         Map<String, String> linkElementParameters = Map.of(DOWNLOAD, DOWNLOAD, CLASS, buttonClass, "title",
             contextLocalization.getTranslationPlain("rendering.macro.viewFile.thumbnail.button.title"));
 
-        List<Block> innerContainer = getFileDisplayBlocks(thumbnailStyle, inLineElement, attachmentReference);
+        List<Block> innerContainer = getFileDisplayBlocks(thumbnailStyle, inLineElement, attachmentReference, context);
         ResourceReference reference =
             new ResourceReference(referenceSerializer.serialize(attachmentReference), ResourceType.ATTACHMENT);
         Block linkBlock = new LinkBlock(innerContainer, reference, false, linkElementParameters);
@@ -230,10 +231,11 @@ public class ViewFileMacroPrepareBlocks
         return List.of(wrapperBlock);
     }
 
-    private Block getImageThumbnail(AttachmentReference attachmentReference, boolean isSpan) throws Exception
+    private Block getImageThumbnail(AttachmentReference attachmentReference, boolean isSpan,
+        MacroTransformationContext context) throws Exception
     {
         String asyncBlock = asyncManager.getViewFileAsyncBlock(attachmentReference, isSpan, Map.of(), "span",
-            ViewFileAsyncThumbnailRenderer.HINT);
+            ViewFileAsyncThumbnailRenderer.HINT, context);
         return new RawBlock(asyncBlock, Syntax.XHTML_1_0);
     }
 
@@ -246,21 +248,16 @@ public class ViewFileMacroPrepareBlocks
         }
         String fileExtension = getFileExtension(fileName);
 
-        if (OFFICE_FILE_EXTENSIONS.contains(fileExtension)
-                || CSV_FILE_EXTENSIONS.contains(fileExtension)
-                || (fileExtension.equals(PDF) && isApplicationInstalled(PDF_VIEWER_REFERENCE)))
+        if (OFFICE_FILE_EXTENSIONS.contains(fileExtension) || CSV_FILE_EXTENSIONS.contains(fileExtension) || (
+            fileExtension.equals(PDF) && isApplicationInstalled(PDF_VIEWER_REFERENCE)))
         {
-            Map<String, String> renderParameters = Map.of(
-                    "width", parameters.getWidth(),
-                    "height", parameters.getHeight(),
-                    "fileExtension", fileExtension,
-                    "csvFormat", parameters.getCSVFormat(),
-                    "csvDelimiter", parameters.getCSVDelimiter(),
-                    "csvFirstLineIsHeader", Boolean.toString(parameters.getCSVFirstLineIsHeader())
-            );
+            Map<String, String> renderParameters =
+                Map.of("width", parameters.getWidth(), "height", parameters.getHeight(), "fileExtension", fileExtension,
+                    "csvFormat", parameters.getCSVFormat(), "csvDelimiter", parameters.getCSVDelimiter(),
+                    "csvFirstLineIsHeader", Boolean.toString(parameters.getCSVFirstLineIsHeader()));
 
             String asyncBlock = asyncManager.getViewFileAsyncBlock(attachmentReference, false, renderParameters, "div",
-                ViewFileAsyncFullRenderer.HINT);
+                ViewFileAsyncFullRenderer.HINT, context);
             return List.of(new RawBlock(asyncBlock, Syntax.XHTML_1_0));
         }
         // Fallback if the file extension is not a known one.
@@ -305,20 +302,20 @@ public class ViewFileMacroPrepareBlocks
     }
 
     private List<Block> getFileDisplayBlocks(boolean thumbnailStyle, boolean isSpan,
-        AttachmentReference attachmentReference) throws Exception
+        AttachmentReference attachmentReference, MacroTransformationContext context) throws Exception
     {
-        Block thumbunalBlock = getThumbnail(thumbnailStyle, attachmentReference, isSpan);
+        Block thumbunalBlock = getThumbnail(thumbnailStyle, attachmentReference, isSpan, context);
         Block titleTextBlock = new WordBlock(attachmentReference.getName());
         Block titleBlock = new FormatBlock(List.of(titleTextBlock), Format.NONE, Map.of(CLASS, "viewFileName"));
         return List.of(thumbunalBlock, titleBlock);
     }
 
-    private Block getThumbnail(boolean thumbnailStyle, AttachmentReference attachmentReference, boolean isSpan)
-        throws Exception
+    private Block getThumbnail(boolean thumbnailStyle, AttachmentReference attachmentReference, boolean isSpan,
+        MacroTransformationContext context) throws Exception
 
     {
         if (!isOversize && !thumbnailStyle) {
-            return getImageThumbnail(attachmentReference, isSpan);
+            return getImageThumbnail(attachmentReference, isSpan, context);
         }
         // Generic thumbnail.
         return viewFileExternalBlockManager.getMimeTypeBlock(attachmentReference, thumbnailStyle || isSpan);

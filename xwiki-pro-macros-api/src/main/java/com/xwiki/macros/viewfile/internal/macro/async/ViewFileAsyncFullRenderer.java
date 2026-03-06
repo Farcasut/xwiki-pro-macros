@@ -33,10 +33,6 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.servlet.http.HttpSession;
 
-import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.doc.XWikiAttachment;
-import com.xpn.xwiki.doc.XWikiAttachmentContent;
-import com.xpn.xwiki.doc.XWikiDocument;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -47,13 +43,13 @@ import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.rendering.RenderingException;
 import org.xwiki.rendering.block.Block;
-import org.xwiki.rendering.block.CompositeBlock;
 import org.xwiki.rendering.block.GroupBlock;
 import org.xwiki.rendering.block.MacroBlock;
+import org.xwiki.rendering.block.TableBlock;
 import org.xwiki.rendering.block.TableCellBlock;
 import org.xwiki.rendering.block.TableHeadCellBlock;
 import org.xwiki.rendering.block.TableRowBlock;
-import org.xwiki.rendering.block.TableBlock;
+import org.xwiki.rendering.block.XDOM;
 import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.macro.AbstractMacro;
 import org.xwiki.rendering.macro.Macro;
@@ -62,8 +58,13 @@ import org.xwiki.rendering.parser.ParseException;
 import org.xwiki.rendering.parser.Parser;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.rendering.transformation.MacroTransformationContext;
+import org.xwiki.rendering.transformation.TransformationContext;
 
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiAttachment;
+import com.xpn.xwiki.doc.XWikiAttachmentContent;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.macros.viewfile.internal.macro.ViewFileMacro;
 import com.xwiki.macros.viewfile.macro.async.AbstractViewFileAsyncRenderer;
@@ -195,8 +196,22 @@ public class ViewFileAsyncFullRenderer extends AbstractViewFileAsyncRenderer
     protected Block execute(boolean async, boolean cached) throws RenderingException
     {
         try {
+            //TODO Return a block that informs the user that the office server is off.
             List<Block> result = prepareFullDisplay();
-            return new CompositeBlock(result);
+            Block block = result.get(0);
+            XDOM xdom = null;
+            if (block instanceof XDOM) {
+                xdom = (XDOM) block;
+            } else {
+                xdom = new XDOM(Collections.singletonList(block));
+            }
+            TransformationContext transformationContext2 =
+                new TransformationContext(xdom, this.transformationContext.getSyntax(),
+                    this.transformationContext.getTransformationContext().isRestricted());
+            transformationContext2.setTargetSyntax(
+                this.transformationContext.getTransformationContext().getTargetSyntax());
+            transform(block, transformationContext2);
+            return block;
         } catch (Exception e) {
             throw new RenderingException("Failed to render asynchronously the work items displayer.", e);
         }
